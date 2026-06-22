@@ -253,5 +253,35 @@ Date last modified: 2024-09-18
 
 ¹Work performed under USGS contract 140G0121D0001 for NASA contract NNG14HH33I.  
 
-## GaiaDhi Extensions
+## GaiaDhi Code Extensions
 ### Earthaccess account credentials
+While you are encouraged to create your own earthdata login (https://urs.earthdata.nasa.gov/), you can use Karthik's temporarily.  The credentials need to go into a .netrc file on root folder on Unix machines.  The following lines need to be added in.  Make sure to have a <CR> or <NL> after the last non-empty text line, else you will get strange errors from GDAL.
+
+machine urs.earthdata.nasa.gov
+login gaiadhiholos2
+password !G010Dh1H02020
+
+### What does GaiaDhi extensions do
+
+For use in Prithvi models:
+
+#### Crop each image subset to 224x224 pixels
+size_to_224x224() in HLS_PER.py is called by process_granule() on every band subset and cropped subset is written into a file prepended by "224x224".  The original downloaded file is retained.
+
+#### Time series merge into a single file
+1. If there are more than three time instances of subsets available in the specificed time range, added code will choose the set of bands from the first, last, and "middle" time instance, order them as listed in the "-bands" input paramenter and merge them into a single TIF.  This TIF will have "_merged_" in it's filename.
+2. If less than three time instances of of subsets available in the specificed time range, added code will order all bands in each subset as listed in the "-bands" input paramenter and merge them into a single TIF.  This TIF will have "_merged_" in it's filename.
+
+#### Example invokation of HLS_SuPER for chip that includes Snook (TAMU) farm
+(Coords are those of chip 350_345).
+Remember to:
+1. create the output dir (350_345 in this example)
+2. bands should be in the stacking order as needed by a Prithvi model
+   
+> python HLS_SuPER.py -roi "'-96.39329440625556, 30.400216944958025, -96.32294297846818, 30.460943443262167'" -dir 350_345 -start 2023-05-01 -end 2023-08-30 -cc 5 -of COG -bands BLUE,GREEN,RED,NIR1,SWIR1,SWIR2
+
+#### Pre-downloaded subset and generated files
+These are abailable in the 350_345 folder, and executed for the time period in above example. You may choose to drop the "_merged_" tif into PrthviEO crop identification model for kicks sake.
+
+#### To Do
+Validate using available merged chip, and expand time period.
